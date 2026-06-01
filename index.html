@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Starfall Throne — The Oracle's Gambit</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="stars"></div>
+
+<!-- GUIDE PANEL -->
+<div class="guide-overlay hidden" id="guideOverlay">
+  <div class="guide-box">
+    <button class="guide-close" onclick="toggleGuide()">✕</button>
+    <div class="guide-title">📖 Game Guide</div>
+    <div class="gsect">POWER CYCLE (Higher Rank = Fewer Wins)</div>
+    <table class="gtbl">
+      <thead><tr><th>Card</th><th>Mana</th><th>Beats</th><th>Dmg Dealt</th><th>Loses to</th></tr></thead>
+      <tbody>
+        <tr><td style="color:var(--kc);">♚ King</td><td>6</td><td>Queen · Jack</td><td style="color:var(--tl);">−75</td><td style="color:var(--ac);">Ace · mirror</td></tr>
+        <tr><td style="color:var(--qc);">♛ Queen</td><td>4</td><td>Jack · Ace</td><td style="color:var(--tl);">−100</td><td style="color:var(--kc);">King · mirror</td></tr>
+        <tr><td style="color:var(--jc);">♞ Jack</td><td>3</td><td>Ace · King?</td><td style="color:var(--tl);">−125</td><td style="color:var(--kc);">King? · Queen · mirror</td></tr>
+        <tr><td style="color:var(--ac);">✦ Ace</td><td>2</td><td>King ONLY</td><td style="color:var(--tl);">−150</td><td style="color:var(--qc);">Queen · Jack · mirror → −200ea</td></tr>
+        <tr><td style="color:#FFD700;font-weight:700;">PASS</td><td>0</td><td>—</td><td>—</td><td style="color:#FFD700;">Passer −50 HP · both cards return</td></tr>
+      </tbody>
+    </table>
+    <div class="gsect">EXACT BEATS TABLE</div>
+    <div class="gtext">
+      <strong>King (♚)</strong> beats Queen, Jack — loses to Ace (Ace counters King!)<br>
+      <strong>Queen (♛)</strong> beats Jack, Ace — loses to King<br>
+      <strong>Jack (♞)</strong> beats Ace — loses to King, Queen<br>
+      <strong>Ace (✦)</strong> beats King ONLY — loses to Queen, Jack; Ace vs Ace = −200 each<br>
+      <strong>Same card</strong> → both return, no damage
+    </div>
+    <div class="gsect">ATTRITION & RESERVE</div>
+    <div class="gtext">
+      <strong>Win a clash</strong> → your card returns. Enemy card dumped, enemy reserve −1.<br>
+      <strong>Lose a clash</strong> → your card dumped forever. Your reserve −1, hand refills.<br>
+      <strong>Ace vs Ace</strong> → both dumped, both −200 HP, both reserves fill hands.<br>
+      <strong>Same card draw</strong> → both return, no damage.<br>
+      <strong>PASS</strong> → passer −50 HP. Both cards return.
+    </div>
+    <div class="gsect">MANA</div>
+    <div class="gtext">Starts at 5. Gains +3 each round, capped at 10. Accumulates — never resets.</div>
+    <div class="gsect">ORACLE'S EYE — VARIABLE ELIMINATION</div>
+    <div class="gtext">
+      Predicts enemy card using their remaining pool, mana constraints, and HP-based aggression weights.
+      Use the predictions to play the card that counters what the Oracle is most likely to play!
+    </div>
+  </div>
+</div>
+
+<!-- START SCREEN -->
+<div class="overlay" id="startScreen">
+  <div class="obox">
+    <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:5px;color:var(--gd);margin-bottom:5px;">A CARD DUEL OF FATE</div>
+    <div class="ottl">Starfall Throne</div>
+    <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;color:var(--td);margin-bottom:12px;">THE ORACLE'S GAMBIT</div>
+    <div class="cbox">
+      <span style="color:var(--gold);font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;">POWER CYCLE</span><br>
+      <span style="color:var(--kc);">♚ King</span> beats Queen · Jack — <span style="color:var(--kc);">75 dmg · 6 mana</span><br>
+      <span style="color:var(--qc);">♛ Queen</span> beats Jack · Ace — <span style="color:var(--qc);">100 dmg · 4 mana</span><br>
+      <span style="color:var(--jc);">♞ Jack</span> beats Ace — <span style="color:var(--jc);">125 dmg · 3 mana</span><br>
+      <span style="color:var(--ac);">✦ Ace</span> beats <strong style="color:var(--ac);">King ONLY</strong> — <span style="color:var(--ac);">150 dmg · 2 mana</span><br>
+      <span style="color:var(--tdd);">Ace vs Ace = −200 HP each · both dumped</span><br>
+      <span style="color:#FFD700;font-weight:700;">PASS = −50 HP to passer · both cards return</span>
+    </div>
+    <div class="osub" style="font-size:11px;">
+      Tower HP: <strong style="color:var(--txt);">500</strong> · <strong style="color:var(--txt);">15 Rounds</strong><br>
+      <span style="color:var(--pl);">Oracle's Eye predicts enemy — counter wisely!</span>
+    </div>
+    <button class="btn g" onclick="startGame()" style="font-size:12px;padding:9px 28px;margin-top:10px;">Begin the Duel ⚔</button>
+  </div>
+</div>
+
+<!-- END SCREEN -->
+<div class="overlay hidden" id="endScreen">
+  <div class="obox">
+    <div class="ottl" id="endTitle"></div>
+    <div class="osub" id="endSub"></div>
+    <div id="endStats" style="font-size:11px;color:var(--td);margin-bottom:14px;line-height:1.9;background:rgba(0,0,0,.3);border-radius:8px;padding:9px;"></div>
+    <button class="btn g" onclick="location.reload()">Play Again</button>
+  </div>
+</div>
+
+<!-- MAIN GAME -->
+<div class="wrap">
+  <!-- Header -->
+  <div class="hdr">
+    <div class="hdr-left">
+      <div class="hdr-t">⚔ Starfall Throne</div>
+      <div class="hdr-s">The Oracle's Gambit · Variable Elimination</div>
+    </div>
+    <div class="hdr-right">
+      <button class="ctrl-btn" id="musicBtn" onclick="toggleMusic()">🎵 Music</button>
+      <button class="ctrl-btn" onclick="toggleGuide()">📖 Guide</button>
+    </div>
+  </div>
+
+  <!-- Round Track -->
+  <div class="rtrack" id="rtrack"></div>
+
+  <!-- Tower Row -->
+  <div class="tower-row">
+    <div class="tower-block" id="eTowerBlock">
+      <div class="tw-inner">
+        <div class="tower-img enemy" id="eTowerImg">🏰</div>
+        <div class="tw-info">
+          <div class="tpl">ORACLE TOWER</div>
+          <div class="tpn" id="eHp" style="color:var(--rl);">500</div>
+          <div class="hpbg"><div class="hpfill e" id="eBar" style="width:100%;"></div></div>
+          <div class="tw-foot">
+            <span class="mlbl">MANA <span class="mv" id="eMana">5</span></span>
+            <span class="hcount" id="eCount">H:5 R:5</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="vs-center">
+      <span class="vs-icon">⚔️</span>
+      <span class="vs-rnd" id="rndLbl">ROUND 1</span>
+    </div>
+    <div class="tower-block" id="pTowerBlock">
+      <div class="tw-inner">
+        <div class="tower-img player" id="pTowerImg">🗼</div>
+        <div class="tw-info">
+          <div class="tpl">YOUR TOWER</div>
+          <div class="tpn" id="pHp" style="color:var(--tl);">500</div>
+          <div class="hpbg"><div class="hpfill p" id="pBar" style="width:100%;"></div></div>
+          <div class="tw-foot">
+            <span class="mlbl">MANA <span class="mv" id="pMana">5</span></span>
+            <span class="hcount" id="pCount">H:5 R:5</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Middle: Battlefield + Oracle Eye -->
+  <div class="mid-row">
+    <!-- Battlefield -->
+    <div class="bf" id="bf">
+      <div class="bf-bg-text">CLASH</div>
+      <div class="bf-label">BATTLEFIELD</div>
+      <div class="crow" id="bfContent">
+        <div class="cslot">
+          <div class="ccard empty-slot">
+            <div class="csym" style="color:var(--tdd);opacity:.3;">?</div>
+            <div class="cname" style="color:var(--tdd);">WAITING</div>
+          </div>
+          <div class="clbl">ORACLE</div>
+        </div>
+        <div class="cvs-wrap"><div class="cvs">VS</div></div>
+        <div class="cslot">
+          <div class="ccard empty-slot">
+            <div class="csym" style="color:var(--tdd);opacity:.3;">?</div>
+            <div class="cname" style="color:var(--tdd);">SELECT</div>
+          </div>
+          <div class="clbl">YOU</div>
+        </div>
+      </div>
+      <div class="smsg" id="smsg">Choose a card from your hand to play...</div>
+    </div>
+
+    <!-- Oracle Eye -->
+    <div class="oracle">
+
+      <!-- Compact Eye Header -->
+      <div class="eye-hero">
+        <div class="eye-svg-wrap">
+          <svg width="64" height="30" viewBox="0 0 200 90" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="irisGrad" cx="45%" cy="40%" r="55%">
+                <stop offset="0%" stop-color="#c39be6"/>
+                <stop offset="40%" stop-color="#7d3c98"/>
+                <stop offset="100%" stop-color="#3a1a5a"/>
+              </radialGradient>
+              <radialGradient id="pupilGrad" cx="38%" cy="35%" r="60%">
+                <stop offset="0%" stop-color="#1a0a2e"/>
+                <stop offset="100%" stop-color="#05020f"/>
+              </radialGradient>
+              <filter id="glow"><feGaussianBlur stdDeviation="2.5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+              <filter id="strongGlow"><feGaussianBlur stdDeviation="4" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+              <clipPath id="eyeClip"><path d="M10,45 Q50,5 100,5 Q150,5 190,45 Q150,85 100,85 Q50,85 10,45 Z"/></clipPath>
+            </defs>
+            <ellipse cx="100" cy="45" rx="88" ry="40" fill="rgba(155,89,182,0.08)"/>
+            <path d="M10,45 Q50,5 100,5 Q150,5 190,45 Q150,85 100,85 Q50,85 10,45 Z" fill="#0d0820" stroke="rgba(155,89,182,0.8)" stroke-width="2" filter="url(#glow)"/>
+            <circle cx="100" cy="45" r="30" fill="url(#irisGrad)" clip-path="url(#eyeClip)" filter="url(#glow)"/>
+            <circle cx="100" cy="45" r="28" fill="none" stroke="rgba(195,155,230,0.2)" stroke-width="1"/>
+            <circle cx="100" cy="45" r="16" fill="none" stroke="rgba(125,60,152,0.4)" stroke-width="1"/>
+            <g class="eye-ring-outer"><circle cx="100" cy="45" r="26" fill="none" stroke="rgba(155,89,182,0.4)" stroke-width="1.2" stroke-dasharray="4 6"/></g>
+            <g class="eye-ring-inner"><circle cx="100" cy="45" r="20" fill="none" stroke="rgba(195,155,230,0.25)" stroke-width="0.8" stroke-dasharray="3 8"/></g>
+            <circle id="eyePupil" cx="100" cy="45" r="13" fill="url(#pupilGrad)" clip-path="url(#eyeClip)" filter="url(#strongGlow)"/>
+            <circle cx="94" cy="39" r="4" fill="rgba(255,255,255,0.2)" clip-path="url(#eyeClip)"/>
+            <path d="M10,45 Q50,5 100,5 Q150,5 190,45" fill="none" stroke="rgba(155,89,182,0.9)" stroke-width="2"/>
+            <path d="M10,45 Q50,85 100,85 Q150,85 190,45" fill="none" stroke="rgba(155,89,182,0.55)" stroke-width="1.5"/>
+          </svg>
+        </div>
+        <div class="eye-header-text">
+          <div class="oct">ORACLE'S EYE</div>
+          <div class="ocs">ENEMY PREDICTION</div>
+          <div class="oc-algo-badge">VAR. ELIMINATION</div>
+        </div>
+      </div>
+
+      <!-- Prediction Chart - THE HERO -->
+      <div class="pgrid-wrap">
+        <div class="pgrid-title">— PROBABILITY FORECAST —</div>
+        <div class="pgrid" id="pgrid"></div>
+      </div>
+
+      <!-- Log -->
+      <div class="lbox" id="lbox">
+        <span class="kw">[Oracle Eye]</span> Awakening...<br>
+        <span class="wn">[System]</span> Decks sealed: 3K·3Q·2J·2A<br>
+      </div>
+
+      <!-- Oracle Dumped -->
+      <div class="oc-mini-panel">
+        <div class="pbt">ORACLE DUMPED</div>
+        <div class="pbcards" id="eDumpedDisp"></div>
+      </div>
+      <!-- Your Hand summary -->
+      <div class="oc-mini-panel">
+        <div class="pbt">YOUR HAND</div>
+        <div class="pbcards" id="pHandDisp"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hand -->
+  <div class="hs">
+    <div class="hl">
+      <span id="handLabel">YOUR HAND</span>
+      <span class="hand-sub" id="handSub">5 cards · 5 reserve</span>
+    </div>
+    <div class="hr" id="hr"></div>
+  </div>
+
+  <!-- Buttons -->
+  <div class="br">
+    <button class="btn g" id="playBtn" onclick="playSelected()" disabled>⚔ Play Card</button>
+    <button class="btn pass-btn" id="passBtn" onclick="playPass()">PASS (−50 HP)</button>
+  </div>
+</div>
+
+
+<script src="script.js"></script>
+</body>
+</html>
